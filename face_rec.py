@@ -135,7 +135,10 @@ def write_json(newData, filename="test.json"):
             if type(file_data)== dict:
                 file_data.update(newData)
             else:
-                file_data.append(newData)
+                if len(newData)>0:
+                    file_data.append(newData)
+                else:
+                    print("************ no data to save now ")
             # Sets file's current position at offset.
             file.seek(0)
             # convert back to json. 
@@ -164,13 +167,13 @@ def faceMatch(path, data,noFace):
             except:  # if no match send to new obj
                 print("no macth for ,", cl,":", cl not  in noFace)
                 
-                if cl != noFace:
-                        print(cl ," est prensent dans le dossier noface   " in noFace )
-                        noFace.append(cl)
-                else :
+                if cl not in  noFace:
                         print(len(data))
                         print(" ######### we already looked ",cl," and it has no face")
                         continue
+                else :
+                        print(cl ," est prensent dans le dossier noface   " )
+                        noFace.append(cl)
     else:
         print(" there is no data in the given file, let work it out : ")
         #fi_Encod.append(cl)
@@ -205,13 +208,14 @@ for dirpath, dnames, fnames in os.walk(pathKnown):
     for f in fnames:
         print("************ Processing with ",f,"*******************")
         if f.endswith(".jpg") or f.endswith(".png"):
-            if f.split(".")[0] in proc_face:
+            fileslip = f.split(".")[0]
+            if fileslip in proc_face:
                 face = fr.load_image_file(pathKnown + '/' + f)
                 print("removing ext and detecting faces ")
                 print('we found :', len(fr.face_encodings(face)), "face(s)")
                 if len(fr.face_encodings(face)) > 0:
                     encoding = fr.face_encodings(face)[0]
-                    u_encoded[f.split(".")[0]] = encoding
+                    u_encoded[fileslip] = encoding
                     #saveEncode= encoding
                     #print(u_encoded)
                     print("saving data in JSON file   ................")
@@ -222,7 +226,10 @@ for dirpath, dnames, fnames in os.walk(pathKnown):
 
                 else:
                     print('Warning :  sorry  No face detected in ', f)
-                    u_noface.append(f.split(".")[0])
+                    if fileslip in  noFaceDetect:
+                        print(" already exist")
+                    else:
+                        u_noface.append(fileslip)
                     
                     
 
