@@ -135,6 +135,7 @@ def write_json(newData, filename="test.json"):
             if type(file_data)== dict:
                 file_data.update(newData)
             else:
+                
                 if len(newData)>0:
                     file_data.append(newData)
                 else:
@@ -151,9 +152,10 @@ def write_json(newData, filename="test.json"):
     return file_data
 
 
-def faceMatch(path, data,noFace):
+def faceMatch(path, data,noFace):  ### to find if we already have the encoding
     # Deserialization
     print (type(noFace))
+    print(noFace)
     print("Started Reading JSON file")
     myList = os.listdir(path)
     fi_Encod = []
@@ -167,13 +169,13 @@ def faceMatch(path, data,noFace):
             except:  # if no match send to new obj
                 print("no macth for ,", cl,":", cl not  in noFace)
                 
-                if cl not in  noFace:
+                if cl not  in  noFace:
+                        print(cl ," est abscent  dans le dossier noface   " )
+                        noFace.append(cl)
+                else :
                         print(len(data))
                         print(" ######### we already looked ",cl," and it has no face")
                         continue
-                else :
-                        print(cl ," est prensent dans le dossier noface   " )
-                        noFace.append(cl)
     else:
         print(" there is no data in the given file, let work it out : ")
         #fi_Encod.append(cl)
@@ -226,8 +228,10 @@ for dirpath, dnames, fnames in os.walk(pathKnown):
 
                 else:
                     print('Warning :  sorry  No face detected in ', f)
-                    if fileslip in  noFaceDetect:
+                    
+                    if ((fileslip in  noFaceDetect) & len(u_noface)>= len(noFaceDetect)):
                         print(" already exist")
+                        print(" NO noFaceDetect CONTAINT ", noFaceDetect)
                     else:
                         u_noface.append(fileslip)
                     
