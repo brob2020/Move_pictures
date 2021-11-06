@@ -125,41 +125,42 @@ def classify_face(im):
 
 
 def write_json(newData, filename="test.json"):
-    if os.path.exists(filename): #& os.stat(filename).st_size == 0:  
+    if os.path.exists(filename):  # & os.stat(filename).st_size == 0:
         print("****************** we are updating your file............")
         with open(filename, 'r+') as file:
             # First we load existing data into a dict.
             print("loading data........")
             file_data = json.load(file)
             # Join new_data with file_data inside emp_details
-            if type(file_data)== dict:
+            if type(file_data) == dict:
                 file_data.update(newData)
             else:
-                
-                if len(newData)>0:
-                    file_data.append(newData)
+
+                if len(newData) > 0:
+                    for fs in newData:
+                        file_data.append(fs)
                 else:
                     print("************ no data to save now ")
             # Sets file's current position at offset.
             file.seek(0)
-            # convert back to json. 
-            json.dump(file_data, file, indent=4,cls=NumpyArrayEncoder)
-    else :
+            # convert back to json.
+            json.dump(file_data, file, indent=4, cls=NumpyArrayEncoder)
+    else:
         print("****************** this is your first time **************")
         with open(filename, 'w') as file:
-            json.dump(newData, file, indent=4,cls=NumpyArrayEncoder)
+            json.dump(newData, file, indent=4, cls=NumpyArrayEncoder)
             file_data = newData
     return file_data
 
 
-def faceMatch(path, data,noFace):  ### to find if we already have the encoding
+def faceMatch(path, data, noFace):  # to find if we already have the encoding
     # Deserialization
-    print (type(noFace))
+    print(type(noFace))
     print(noFace)
     print("Started Reading JSON file")
     myList = os.listdir(path)
     fi_Encod = []
-    if len(data)>0:
+    if len(data) > 0:
         for i in myList:
             cl = i.split(".")[0]
             # finding if image have encoding
@@ -167,25 +168,27 @@ def faceMatch(path, data,noFace):  ### to find if we already have the encoding
                 data[cl]
 
             except:  # if no match send to new obj
-                print("no macth for ,", cl,":", cl not  in noFace)
-                
-                if cl not  in  noFace:
-                        print(cl ," est abscent  dans le dossier noface   " )
-                        noFace.append(cl)
-                else :
-                        print(len(data))
-                        print(" ######### we already looked ",cl," and it has no face")
-                        continue
+                print("no macth for ,", cl, ":", cl not in noFace)
+                #newfile = noFace[len(noFace)-1]
+                if cl not in noFace:
+                    print(cl, " est abscent  dans le dossier noface   ")
+                    noFace.append(cl)
+                else:
+                    print(len(data))
+                    print(" ######### we already looked ",
+                          cl, " and it has no face")
+                    print(noFace)
+                    noFace.remove(cl)
+                    continue
     else:
         print(" there is no data in the given file, let work it out : ")
-        #fi_Encod.append(cl)
+        # fi_Encod.append(cl)
         for cl in myList:
             cl = cl.split(".")[0]
             noFace.append(cl)
-                
 
+    noFace = list(set(noFace))
     return noFace
-    
 
 
 # img =face_recognition.load_image_file('20201219_151029.jpg')
@@ -195,20 +198,21 @@ print("image was resised .......")
 
 
 u_encoded = {}
-u_noface =[]
+u_noface = []
 
 
 pathKnown = "./images"
-fileName ="encodeKnown.json"
-fileNameN ="noface.json"
-noFaceDetect = write_json(u_noface,filename=fileNameN)
-loadFile = write_json(u_encoded,filename=fileName)
-proc_face = faceMatch(pathKnown,loadFile,noFaceDetect)
+fileName = "encodeKnown.json"
+fileNameN = "noface.json"
+noFaceDetect = write_json(u_noface, filename=fileNameN)
+loadFile = write_json(u_encoded, filename=fileName)
+proc_face = faceMatch(pathKnown, loadFile, noFaceDetect)
+print(loadFile.keys())
 
 
 for dirpath, dnames, fnames in os.walk(pathKnown):
     for f in fnames:
-        print("************ Processing with ",f,"*******************")
+        print("************ Processing with ", f, "*******************")
         if f.endswith(".jpg") or f.endswith(".png"):
             fileslip = f.split(".")[0]
             if fileslip in proc_face:
@@ -219,35 +223,31 @@ for dirpath, dnames, fnames in os.walk(pathKnown):
                     encoding = fr.face_encodings(face)[0]
                     u_encoded[fileslip] = encoding
                     #saveEncode= encoding
-                    #print(u_encoded)
+                    # print(u_encoded)
                     print("saving data in JSON file   ................")
-                    write_json(u_encoded,filename=fileName)
+                    write_json(u_encoded, filename=fileName)
                     """  with open('encodeKnown.json', 'w') as write_file:
                         json.dump(u_encoded,write_file ,cls=NumpyArrayEncoder) """
-                    
 
                 else:
                     print('Warning :  sorry  No face detected in ', f)
-                    
-                    if ((fileslip in  noFaceDetect) & len(u_noface)>= len(noFaceDetect)):
-                        print(" already exist")
-                        print(" NO noFaceDetect CONTAINT ", noFaceDetect)
-                    else:
-                        u_noface.append(fileslip)
-                    
-                    
+                    u_noface.append(fileslip)
 
-            else : 
-                print(" ******** we already have an encoding for :",f)
-        else :
-            print ("**************",f ," is not a valide format*********")
-    print("complete getting files ........")
+            else:
+                print(" ******** we already have an encoding for :", f)
+        else:
+            print("**************", f, " is not a valide format*********")
+            if f.split(".")[0] in  noFaceDetect :
+                u_noface.append(f.split(".")[0])
+
+
+    print("complete getting files ........\n")
 print("SAVING FILE WITH NO FACE \n")
-if len(u_noface)>0:
-    write_json(u_noface,filename=fileNameN)
-else :
+if len(u_noface) > 0:
+    write_json(u_noface, filename=fileNameN)
+else:
     print("there is no new files with no faces ")
-    
+
 
 """ u_cooode = {'2test74': ([-2.1312435,  0.04238239,  0.09264351, -0.00060404, -0.0332113,
                          -0.09859727,  0.07820927, -0.07746867,  0.10005408, -0.09410999,
@@ -367,7 +367,7 @@ test = {}
 y = {'4test': ([-2.1312435,  0.04238239,  0.09264351, ])}
 data= write_json(test,filename="danger.json")
 print(data) """
-#write_json(u_cooode,filename="danger.json")
+# write_json(u_cooode,filename="danger.json")
 
 
 # print(classify_face('./images/20201225_114337.jpg'))
